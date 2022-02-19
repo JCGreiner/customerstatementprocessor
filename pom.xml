@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>2.6.3</version>
+		<relativePath/> <!-- lookup parent from repository -->
+	</parent>
+	<groupId>nl.luminis</groupId>
+	<artifactId>customerstatementprocessor</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<name>customerstatementprocessor</name>
+	<description>Demo project for Luminis</description>
+	<properties>
+		<!-- build -->
+		<buildnumber-maven-plugin.version>1.4</buildnumber-maven-plugin.version>
+		<java.version>17</java.version>
+		<maven.compiler.source>17</maven.compiler.source>
+		<maven.compiler.target>17</maven.compiler.target>
+		<maven-compiler-plugin.version>3.9.0</maven-compiler-plugin.version>
+		<maven-dependency-plugin.version>3.2.0</maven-dependency-plugin.version>
+		<maven-release-plugin.version>2.5.3</maven-release-plugin.version>
+		<maven-replacer-plugin.version>1.5.3</maven-replacer-plugin.version>
+		<maven-surefire-plugin.version>2.22.2</maven-surefire-plugin.version>
+		<openapi-generator-maven-plugin.version>3.3.4</openapi-generator-maven-plugin.version>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+		<scm.connection.host>git@github.com:JCGreiner/customerstatementprocessor.git</scm.connection.host>
+
+		<!-- service -->
+		<jaxb-runtime.version>2.3.2</jaxb-runtime.version>
+		<opencsv.version>5.0</opencsv.version>
+		<swagger-ui.version>3.28.0</swagger-ui.version>
+		<version.springdoc-openapi-ui>1.6.6</version.springdoc-openapi-ui>
+
+	</properties>
+	<dependencies>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-jersey</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-thymeleaf</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springdoc</groupId>
+			<artifactId>springdoc-openapi-ui</artifactId>
+			<version>${version.springdoc-openapi-ui}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>org.glassfish.jaxb</groupId>
+			<artifactId>jaxb-runtime</artifactId>
+			<version>${jaxb-runtime.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.opencsv</groupId>
+			<artifactId>opencsv</artifactId>
+			<version>${opencsv.version}</version>
+		</dependency>
+		<!-- test -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+			<exclusions>
+				<exclusion>
+					<groupId>junit</groupId>
+					<artifactId>junit</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+				<configuration>
+					<excludes>
+						<exclude>
+							<groupId>org.projectlombok</groupId>
+							<artifactId>lombok</artifactId>
+						</exclude>
+					</excludes>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.openapitools</groupId>
+				<artifactId>openapi-generator-maven-plugin</artifactId>
+				<version>${openapi-generator-maven-plugin.version}</version>
+			</plugin>
+			<plugin>
+				<!-- Download Swagger UI webjar. -->
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<version>${maven-dependency-plugin.version}</version>
+				<executions>
+					<execution>
+						<phase>prepare-package</phase>
+						<goals>
+							<goal>unpack</goal>
+						</goals>
+						<configuration>
+							<artifactItems>
+								<artifactItem>
+									<groupId>org.webjars</groupId>
+									<artifactId>swagger-ui</artifactId>
+									<version>${swagger-ui.version}</version>
+								</artifactItem>
+							</artifactItems>
+							<outputDirectory>${project.build.directory}/swagger-ui</outputDirectory>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<!-- Add Swagger UI resources to the war file. -->
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-war-plugin</artifactId>
+				<version>${maven-war-plugin.version}</version>
+				<configuration>
+					<archive>
+						<failOnMissingWebXml>false</failOnMissingWebXml>
+						<manifest>
+							<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+						</manifest>
+						<manifestEntries>
+							<Implementation-Build>v${project.version}</Implementation-Build>
+						</manifestEntries>
+					</archive>
+					<webResources combine.children="append">
+						<webResource>
+							<directory>${basedir}/src/main/webapp</directory>
+							<filtering>true</filtering>
+							<includes>
+								<include>index.html</include>
+							</includes>
+						</webResource>
+						<resource>
+							<directory>${project.build.directory}/swagger-ui/META-INF/resources/webjars/swagger-ui/${swagger-ui.version}</directory>
+							<excludes>
+								<exclude>**/**.gz</exclude>
+							</excludes>
+							<targetPath>swagger-ui</targetPath>
+						</resource>
+					</webResources>
+				</configuration>
+			</plugin>
+			<plugin>
+				<!-- Replace the OpenAPI specification example URL with the local one. -->
+				<groupId>com.google.code.maven-replacer-plugin</groupId>
+				<artifactId>replacer</artifactId>
+				<version>${maven-replacer-plugin.version}</version>
+				<executions>
+					<execution>
+						<phase>prepare-package</phase>
+						<goals>
+							<goal>replace</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<file>${project.build.directory}/swagger-ui/META-INF/resources/webjars/swagger-ui/${swagger-ui.version}/index.html</file>
+					<unescape>true</unescape>
+					<replacements>
+						<replacement>
+							<token>"https://petstore.swagger.io/v2/swagger.json"</token>
+							<value>window.location.protocol + '//' + window.location.host + '/customerstatementprocessor/openapi.json'</value>
+						</replacement>
+					</replacements>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+	<scm>
+		<connection>${scm.connection.host}</connection>
+		<tag>HEAD</tag>
+	</scm>
+</project>

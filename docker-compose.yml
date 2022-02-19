@@ -1,0 +1,27 @@
+version: '3.4'
+
+networks:
+  csp-network:
+    driver: bridge
+
+services:
+  customerstatementprocessing:
+    container_name: csp_web
+    build:
+      context: ""
+      dockerfile: Dockerfile
+    environment:
+      JAVA_TOOL_OPTIONS: -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.rmi.port=9099 -Dcom.sun.management.jmxremote.host=0.0.0.0 -Djava.rmi.server.hostname=0.0.0.0
+
+    ports:
+      - "9080:9080"
+      - "9009:9009"
+    volumes:
+      - /opt/datastore/csp/logs:/logs
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+      - /home/jenkins/infrastructure/healthdeclaration/dump_location:/home/csp/dump_location
+    networks:
+      csp-network:
+
+    restart: unless-stopped
